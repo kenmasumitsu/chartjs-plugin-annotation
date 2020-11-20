@@ -90,13 +90,29 @@ module.exports = function(Chart) {
 	var chartHelpers = Chart.helpers;
 
 	function initConfig(config) {
-		config = chartHelpers.configMerge(Chart.Annotation.defaults, config);
-		if (chartHelpers.isArray(config.annotations)) {
-			config.annotations.forEach(function(annotation) {
-				annotation.label = chartHelpers.configMerge(Chart.Annotation.labelDefaults, annotation.label);
-			});
-		}
-		return config;
+		const mergedConfig = Object.assign({}, Chart.Annotation.defaults);
+
+		Object.keys(mergedConfig).forEach((key) => {
+			if (config[key]) {
+				if (Array.isArray(mergedConfig[key])) {
+					mergedConfig[key] = config[key].slice();
+				} else {
+					mergedConfig[key] = config[key];
+				}
+			}
+		});
+
+		// for annotation.label
+		mergedConfig.annotations.forEach((annotation) => {
+			if (annotation.label) {
+				Object.keys(Chart.Annotation.labelDefaults).forEach((key) => {
+					if (!annotation.label[key]) {
+						annotation.label[key] = Chart.Annotation.labelDefaults[key];
+					}
+				});
+			}
+		});
+		return mergedConfig;
 	}
 
 	function getScaleLimits(scaleId, annotations, scaleMin, scaleMax) {
